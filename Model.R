@@ -7,24 +7,6 @@ load("data/Font_size.Rda")
 RS<- subset(RS, cond==1 | cond==3)
 RS<- subset(RS, !is.na(RS$prevChar))
 
-# calculate length of next saccade:
-RS$next_sacc<- RS$nextX - RS$xPos
-RS$next_sacc_deg<- NA
-RS$next_land_pos<- NA
-
-for(i in 1:nrow(RS)){
-  if(is.element(RS$cond[i], c(1,3))){
-    RS$next_sacc_deg[i]<- (RS$next_sacc[i]/ 12)*0.295
-    RS$next_land_pos[i]<- ((RS$nextX[i] -200)/12)*0.295
-    
-  }else{
-    RS$next_sacc_deg[i]<- (RS$next_sacc[i]/ 16)*0.394
-    RS$next_land_pos[i]<- ((RS$nextX[i] -200)/16)*0.394
-  }
-}
-
-USP<- subset(RS, undersweep_prob==1)
-
   
   
 # Parameters:
@@ -141,4 +123,12 @@ mean(MUSP$M_next_sacc_len); sd(MUSP$M_next_sacc_len)
 # hist(MUSP$M_next_sacc_len, breaks= 30, col= adjustcolor( "darkred", alpha.f = 0.5), add=T, freq = F)
 # legend(x = 7, y = 0.5, legend = c('Data', "Model"), fill= c('steelblue', adjustcolor( "darkred", alpha.f = 0.5)))
 
+
+##################################################
+#          Accurate next saccades                #
+##################################################
+ACC<- subset(RS, undersweep_prob==0)
+
+hist(ACC$next_sacc_deg, breaks= 30, col= adjustcolor( "steelblue", alpha.f = 1),
+     xlab= 'Corrective saccade landing position (deg)', freq= F, main= 'Corrective saccade landing position')
 
