@@ -1,13 +1,32 @@
 
 rm(list= ls())
 
-load("data/Return_sweep.Rda")
+load("data/Font_size.Rda")
 
 #RS<- subset(RS, sub<4)
 RS<- subset(RS, cond==1 | cond==3)
 RS<- subset(RS, !is.na(RS$prevChar))
 
+# calculate length of next saccade:
+RS$next_sacc<- RS$nextX - RS$xPos
+RS$next_sacc_deg<- NA
+RS$next_land_pos<- NA
 
+for(i in 1:nrow(RS)){
+  if(is.element(RS$cond[i], c(1,3))){
+    RS$next_sacc_deg[i]<- (RS$next_sacc[i]/ 12)*0.295
+    RS$next_land_pos[i]<- ((RS$nextX[i] -200)/12)*0.295
+    
+  }else{
+    RS$next_sacc_deg[i]<- (RS$next_sacc[i]/ 16)*0.394
+    RS$next_land_pos[i]<- ((RS$nextX[i] -200)/16)*0.394
+  }
+}
+
+USP<- subset(RS, undersweep_prob==1)
+
+  
+  
 # Parameters:
 VA<- 0.2953               # visual angle per letter in the Experiment
 sys_err_mu_X0<- -0.271    # intercept of systematic error (in deg)
@@ -16,12 +35,15 @@ rand_sigmaX0<- 0.20       # intercept of random error SD
 rand_sigmaX<- 0.05        # slope of random error SD
 pCorr_mu<- 2             # Mean of CDF for prob. of making a corrective saccade (in letters)
 pCorr_sigma<- 7         # SD of CDF for prob. of making a corrective saccade  (in letters)
+Len_corr_sacc_sigma<- 0.8     # SD of the length of corrective saccades (in deg)
 
 
 
 RS$Model<- NA
 RS$LPM<- NA
 RS$M_UND<- NA
+RS$M_next_LP<- NA
+RS$M_next_sacc_len<- NA
 
 for(i in 1:nrow(RS)){
   dist<- RS$prevChar[i]*VA    #intended saccade distance (left margin) 
@@ -40,6 +62,15 @@ for(i in 1:nrow(RS)){
     RS$M_UND[i]<- 1
   }else{
     RS$M_UND[i]<- 0
+  }
+  
+  # length of corrective saccade
+  if(RS$M_UND[i]== 1){
+    
+    #next landing position (in deg):
+    RS$M_next_LP[i]<- rnorm(n = 1, mean = 0, sd = Len_corr_sacc_sigma)
+    RS$M_next_sacc_len[i]<- RS$M_next_LP[i]- RS$LPM[i] # next sacc length (negative mean corr)
+    
   }
 
 }
@@ -66,6 +97,9 @@ sqrt(sum(sd)/length(sd))
 
 
 
+###################################
+# corrective saccade probability  #
+###################################
 
 library(reshape)
 DesCorr<- melt(RS, id=c('sub', 'item', 'cond', 'LandStartLet'), 
@@ -80,3 +114,31 @@ lines(mCorr$item, mCorr$M_UND_M, col= 'darkred', lwd= 1.5)
 
 mean(RS$undersweep_prob); sd(RS$undersweep_prob)
 mean(RS$M_UND); sd(RS$M_UND)
+
+
+########################################
+# corrective saccade length & land pos #
+########################################
+
+USP<- subset(RS, undersweep_prob==1)
+MUSP<- subset(RS, M_UND==1)
+
+mean(USP$next_land_pos); sd(USP$next_land_pos)
+mean(MUSP$M_next_LP); sd(MUSP$M_next_LP)
+
+hist(USP$next_land_pos, breaks= 30, col= adjustcolor( "steelblue", alpha.f = 1),
+     xlab= 'Corrective saccade landing position (deg)', freq= F, main= 'Corrective saccade landing position')
+hist(MUSP$M_next_LP, breaks= 30, col= adjustcolor( "darkred", alpha.f = 0.5), add=T, freq = F)
+legend(x = 7, y = 0.5, legend = c('Data', "Model"), fill= c('steelblue', adjustcolor( "darkred", alpha.f = 0.5)))
+
+
+
+mean(USP$next_sacc_deg); sd(USP$next_sacc_deg)
+mean(MUSP$M_next_sacc_len); sd(MUSP$M_next_sacc_len)
+
+# hist(USP$next_sacc_deg, breaks= 30, col= adjustcolor( "steelblue", alpha.f = 1),
+#      xlab= 'Corrective saccade length (deg)', freq= F, main= 'Corrective saccade length')
+# hist(MUSP$M_next_sacc_len, breaks= 30, col= adjustcolor( "darkred", alpha.f = 0.5), add=T, freq = F)
+# legend(x = 7, y = 0.5, legend = c('Data', "Model"), fill= c('steelblue', adjustcolor( "darkred", alpha.f = 0.5)))
+
+
