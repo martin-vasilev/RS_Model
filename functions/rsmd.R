@@ -3,6 +3,6 @@
 #  and passes this function ('rmsd') as a handle together with all other required parameters
 rmsd <-function(parms, d) {
   predictions<-get_pred(parms, d)
-  sd<-(predictions-d[ ,1])^2
+  sd<-(predictions-d[ ,3])^2
   return(sqrt(sum(sd)/length(sd)))
 }

@@ -5,6 +5,9 @@ load("data/prep/Font_size.Rda")
 
 sent <- read.delim("D:/R/RS_Model/data/prep/sent.txt")
 
+# 0.29536722163321
+# 0.393822962177613
+
 RS$next_sacc<- abs(RS$nextX - RS$xPos)
 RS$next_sacc_deg<- NA
 RS$next_sacc_let<- NA
@@ -29,6 +32,7 @@ for(i in 1:nrow(RS)){
 
 # Visual angle per character for each obs:
 RS$VA<- NA
+RS$prevVA<- (RS$prevX- 200)*(0.29536722163321/12)
 
 RS$VA[which(RS$cond==1 | RS$cond==3)]<- 0.295
 RS$VA[which(RS$cond==2 | RS$cond==4)]<- 0.394
