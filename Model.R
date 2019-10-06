@@ -28,7 +28,7 @@ RS$M_next_LP<- NA
 RS$M_next_sacc_len<- NA
 
 for(i in 1:nrow(RS)){
-  dist<- RS$prevVA[i] - RS_target   # intended saccade distance
+  dist<- RS$prevVA[i] - RS_target*RS$VA[i]   # intended saccade distance
   sys_error<- sys_err_mu_X0+ dist*sys_err_mu_X  # systematic return sweep error
   rand_error<- rnorm(n = 1, mean = 0, sd = rand_sigmaX0+ rand_sigmaX*dist)
   
@@ -53,7 +53,7 @@ for(i in 1:nrow(RS)){
    #next landing position (in deg):
    # RS$M_next_LP[i]<- rnorm(n = 1, mean = 0, sd = Len_corr_sacc_sigma)
    # RS$M_next_sacc_len[i]<- RS$M_next_LP[i]- RS$LPM[i] # next sacc length (negative mean corr)
-    next_sacc_dist<- RS$M_landStartVA[i]- RS_target 
+    next_sacc_dist<- RS$M_landStartVA[i]- RS_target*RS$VA[i] 
     sys_error_next<- sys_err_mu_X0+ next_sacc_dist*sys_err_mu_X  # systematic return sweep error
     rand_error_next<- rnorm(n = 1, mean = 0, sd = rand_sigmaX0+ rand_sigmaX*next_sacc_dist)
     
