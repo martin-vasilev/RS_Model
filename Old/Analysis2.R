@@ -78,7 +78,7 @@ db2$lower<- db2$Mean - db$SE
 G2<- ggplot(db2, aes(x= font_size, y= Mean, ymax= upper, ymin= lower, group= Type, color= Type, 
                     fill= Type, linetype= Type, shape= Type)) + theme_bw (22)+
   geom_line(size= 1.3)+ geom_point(size=4)+
-  labs(x= "Font size", y= "Landing position (deg)", 
+  labs(x= "Font size", y= "", 
        color= "", shape= '', linetype= '', fill= '') +
   ggtitle("")+ ylim(0, 3)+
   geom_ribbon(alpha= 0.1, color= NA) + 
@@ -132,7 +132,7 @@ mLS$lower<- mLS$Mean_M - mLS$SE
 G3<- ggplot(mLS, aes(x= launchRnd, y= Mean_M, ymax= upper, ymin= lower, group= Type, color= Type, 
                      fill= Type, linetype= Type, shape= Type)) + theme_bw (22)+
   geom_line(size= 1.3)+ geom_point(size=4)+
-  labs(x= "Launch site (in deg)", y= "Landing position (deg)", 
+  labs(x= "Launch site (in deg)", y= "", 
        color= "", shape= '', linetype= '', fill= '') +
   ggtitle("")+ ylim(0, 3)+
   geom_ribbon(alpha= 0.1, color= NA) + 
@@ -250,7 +250,7 @@ db2$lower<- db2$Mean - db$SE
 U2<- ggplot(db2, aes(x= font_size, y= Mean, ymax= upper, ymin= lower, group= Type, color= Type, 
                      fill= Type, linetype= Type, shape= Type)) + theme_bw (22)+
   geom_line(size= 1.3)+ geom_point(size=4)+
-  labs(x= "Font size", y= "Corrective saccade probability", 
+  labs(x= "Font size", y= "", 
        color= "", shape= '', linetype= '', fill= '') +
   ggtitle("")+ ylim(0, 1)+
   geom_ribbon(alpha= 0.1, color= NA) + 
@@ -304,7 +304,7 @@ mLS$lower<- mLS$Mean_M - mLS$SE
 U3<- ggplot(mLS, aes(x= launchRnd, y= Mean_M, ymax= upper, ymin= lower, group= Type, color= Type, 
                      fill= Type, linetype= Type, shape= Type)) + theme_bw (22)+
   geom_line(size= 1.3)+ geom_point(size=4)+
-  labs(x= "Launch site (in deg)", y= "Corrective saccade probability", 
+  labs(x= "Launch site (in deg)", y= "", 
        color= "", shape= '', linetype= '', fill= '') +
   ggtitle("")+ ylim(0, 1)+
   geom_ribbon(alpha= 0.1, color= NA) + 
@@ -343,7 +343,7 @@ ggsave(filename = 'Plots/M2_USPmerged.pdf', plot = figure, width = 18, height = 
 #         LP + USP              #
 #################################
 
-figure2 <- ggarrange(G1, G2, G3, U1, U2, U3, ncol = 3, nrow = 2, common.legend = TRUE, legend = "bottom")
+figure2 <- ggarrange(G1, G2, G3, U1, U2, U3, ncol = 3, nrow = 2, common.legend = TRUE, legend = "bottom", align = "hv")
 figure2<- annotate_figure(figure2,
                          top = text_grob("Model saccade target: 2nd character", color = "black", face = "bold", size = 18))
 ggsave(filename = 'Plots/M2_USPmerged.png', plot = figure2, width = 16, height = 12)

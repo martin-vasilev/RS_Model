@@ -2,6 +2,7 @@
 rm(list= ls())
 
 load("data/Font_size.Rda")
+load("data/L2_word_pos_FS.Rda")
 
 #RS<- subset(RS, cond==1 | cond==3)
 RS<- subset(RS, !is.na(RS$prevChar))
@@ -37,7 +38,7 @@ for(i in 1:nrow(RS)){
   RS$M_landStartLet[i]<- ceiling(RS$M_landStartVA[i]/RS$VA[i])
   
   # Probability of making a corrective saccade
-  probCorrSacc<- pnorm(q = RS$M_landStartLet[i], mean =  pCorr_mu, sd = pCorr_sigma)
+  probCorrSacc<- pnorm(q = RS$M_landStartLet[i]- RS_target, mean =  pCorr_mu, sd = pCorr_sigma)
   #probCorrSacc<- pnorm(q = RS$LPM[i]/VA, mean =  pCorr_mu, sd = pCorr_sigma)
   RandDraw<- runif(1)
 
@@ -59,6 +60,28 @@ for(i in 1:nrow(RS)){
     
     RS$M_next_sacc_len[i]<- next_sacc_dist + sys_error_next + rand_error_next
     RS$M_next_LP[i]<- (RS$M_landStartVA[i]- RS$M_next_sacc_len[i])/RS$VA[i]
+  }else{ # PROGRESSIVE SACCADE
+    # find out current word position:
+    curr_sent<- RS$item[i] # current item
+    word_bounds<- unname(unlist(word_pos[toString(curr_sent)])) # empty spaces (for word position)
+    word_bounds<- c(0, word_bounds) # 0 is start of 1st word (technically, empty space before 1st letter)
+    
+    # where did we land?
+    diff_pos<- abs(RS$M_landStartLet[i]- word_bounds)
+    min_diff_pos<- which(diff_pos== min(diff_pos))
+    
+    # where is the next word?
+    W1_start<- word_bounds[min_diff_pos+1]+1 # start of next word (+1 to get past empty space)
+    W1_end<- word_bounds[min_diff_pos+2]-1 # -1 to get the last character of word
+    W1_OVP<- W1_start + (W1_end- W1_start)/2
+   
+    next_sacc_dist<- RS$M_landStartVA[i]+ (W1_OVP+0.5)*RS$VA[i]
+    sys_error_next<- sys_err_mu_X0+ next_sacc_dist*sys_err_mu_X  # systematic return sweep error
+    rand_error_next<- rnorm(n = 1, mean = 0, sd = rand_sigmaX0+ rand_sigmaX*next_sacc_dist)
+    
+    RS$M_next_sacc_len[i]<- next_sacc_dist + sys_error_next + rand_error_next
+    RS$M_next_LP[i]<- (RS$M_next_sacc_len[i]-RS$M_landStartVA[i])/RS$VA[i]
+    
   }
 
 }
@@ -146,7 +169,7 @@ legend(x = 7, y = 0.5, legend = c('Data', "Model"), fill= c('steelblue', adjustc
 
 
 mean(USP$next_sacc_deg); sd(USP$next_sacc_deg)
-mean(MUSP$M_next_sacc_len); sd(MUSP$M_next_sacc_len)
+mean(MUSP$M_next_sacc_len, na.rm=T); sd(MUSP$M_next_sacc_len, na.rm=T)
 
 hist(USP$next_sacc_deg, breaks= 30, col= adjustcolor( "steelblue", alpha.f = 1),
      xlab= 'Corrective saccade length (deg)', freq= F, main= 'Corrective saccade length')
@@ -157,8 +180,14 @@ legend(x = 7, y = 0.5, legend = c('Data', "Model"), fill= c('steelblue', adjustc
 ##################################################
 #          Accurate next saccades                #
 ##################################################
-#ACC<- subset(RS, undersweep_prob==0)
+ACC<- subset(RS, undersweep_prob==0)
 
-#hist(ACC$next_sacc_deg, breaks= 30, col= adjustcolor( "steelblue", alpha.f = 1),
-#     xlab= 'saccade length (deg)', freq= F, main= 'Accurate saccade length ')
+mean(ACC$next_land_let, na.rm= T); sd(ACC$next_land_let, na.rm= T)
+mean(ACC$M_next_LP, na.rm= T); sd(ACC$M_next_LP, na.rm= T)
 
+
+hist(ACC$next_land_let, breaks= 30, col= adjustcolor( "steelblue", alpha.f = 1),
+     xlab= 'saccade length (deg)', freq= F, main= 'Accurate saccade length ')
+
+hist(ACC$M_next_LP, breaks= 30, col= adjustcolor( "darkred", alpha.f = 1),
+     xlab= 'saccade length (deg)', freq= F, main= 'Accurate saccade length ', add=T)
