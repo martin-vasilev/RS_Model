@@ -20,9 +20,79 @@ x_offset<- 481
 x_offset_indent<- 541
 #sent <- read.delim("D:/R/RS_Model/data/prep/sent.txt")
 
+### Add some additional stuff:
+nsubs<- unique(raw_OZ$sub)
+
+new<- NULL
+for(i in 1:length(nsubs)){ # for each subject..
+  n<- subset(raw_OZ, sub== nsubs[i])
+  nitems<- unique(n$item)
+  
+  for(j in 1:length(nitems)){ # for each item..
+    m<- subset(n, item== nitems[j])
+    m$prevX<- NA
+    m$prevY<- NA
+    m$prevChar<- NA
+    m$prev_max_char_line<- NA
+    m$prev_fix_dur<- NA
+    m$nextX<- NA
+    
+    for(k in 1:nrow(m)){ # for each fixation
+      if(k>1){
+          m$prevX[k]<- m$xPos[k-1]
+          m$prevY[k]<- m$yPos[k-1]
+          m$prevChar[k]<- m$char_line[k-1]
+          m$prev_max_char_line[k]<- m$max_char_line[k-1]
+          m$prev_fix_dur[k]<- m$fix_dur[k-1]
+      }
+      
+      if(k< nrow(m)){ # next sacc
+        m$nextX[k]<- m$xPos[k+1]
+      }
+      
+    } # end of k
+    
+    new<- rbind(new, m)
+    
+  } # end of j
+  cat(i); cat(' ')
+} # end of i
+
+raw_OZ<- new; rm(new)
+
+
+
 RSb<-subset(raw_OZ, Rtn_sweep==1)
 RSb$Condition<- ifelse(RSb$cond==1, "Normal", "Bold") # add condition type
-RSb$VA<- 0.30 # visual angle in experiment
+RSb$VA<- 0.295 # visual angle in experiment (equivalent to "small font" in the font size paper)
+
+# remove outliers:
+out<- which(RSb$fix_dur<40 |RSb$fix_dur>1000)
+RSb<- RSb[-out,]
+
+# remove blinks:
+RSb<- subset(RSb, prev_blink==0 & after_blink==0 & blink==0)
+
+
+# remove useless columns:
+RSb$hasText<- NULL
+RSb$time_since_start<- NULL
+RSb$outOfBnds<- NULL
+RSb$blink<- NULL
+RSb$prev_blink<- NULL
+RSb$after_blink<- NULL
+RSb$Rtn_sweep<- NULL
+
+RSb$undersweep_prob<- ifelse(RSb$Rtn_sweep_type== "undersweep", 1,0)
+
+library(reshape)
+Des<- melt(RSb, id=c('sub', 'item', 'Condition'), 
+            measure=c("char_line", "undersweep_prob") , na.rm=TRUE)
+
+m<- cast(Des, Condition ~ variable
+          , function(x) c(M=signif(mean(x),3)
+                          , SD= sd(x) ))
+
 
 # map x offset (used for calculating visual angle):
 d_num<- c(2,3,5,7,9,10,11,13,15,16,17,18,20,21,22,23,25)
@@ -79,73 +149,61 @@ for(i in 1:nrow(RSb)){
   a<- which(wb$item== RSb$item[i] & wb$line== RSb$line[i])
   
   if(wb$indent[a]==1){
-    RSb$x_offset[i]<- 517
+    RSb$x_offset[i]<- x_offset_indent
   }else{
-    RSb$x_offset[i]<- 481
+    RSb$x_offset[i]<- x_offset
   }
 }
 
 
-RS$next_sacc<- abs(RS$nextX - RS$xPos)
-RS$next_sacc_deg<- NA
-RS$next_sacc_let<- NA
-RS$next_land_pos<- NA
-RS$next_land_let<- NA
+# add landing position relative to line start (in letters):
+RSb$LandStartLet<- RSb$char_line
 
-for(i in 1:nrow(RS)){
-  if(is.element(RS$cond[i], c(1,3))){
-    RS$next_sacc_deg[i]<- (RS$next_sacc[i]/ 12)*0.295
-    RS$next_sacc_let[i]<- ceiling(RS$next_sacc[i]/ 12)
-    RS$next_land_pos[i]<- ((RS$nextX[i] -200)/12)*0.295
-    RS$next_land_let[i]<- ceiling((RS$nextX[i] -200)/12)
-    
-  }else{
-    RS$next_sacc_deg[i]<- (RS$next_sacc[i]/ 16)*0.394
-    RS$next_sacc_let[i]<- ceiling(RS$next_sacc[i]/ 16)
-    RS$next_land_pos[i]<- ((RS$nextX[i] -200)/16)*0.394
-    RS$next_land_let[i]<- ceiling((RS$nextX[i] -200)/16)
-  }
-}
+# landing position relative to line start (in degrees per visual angle)
+
+DPP<- 0.02461393513610085 # degree per pixel in the experiment
+
+RSb$LandStartVA<- (RSb$xPos - RSb$x_offset)*DPP
+
+# code (absolute) launch site distance in letters:
+RSb$launchDistLet<- abs(RSb$char_line- RSb$prevChar)
+
+# code (absolute) launch site distance in visual angle:
+RSb$launchDistVA<- abs(RSb$xPos- RSb$prevX)*DPP
 
 
-# Visual angle per character for each obs:
-RS$VA<- NA
-RS$prevVA<- (RS$prevX- 200)*(0.29536722163321/12)
+# recode saccade length:
+RSb$sacc_len<- abs(RSb$char_line- RSb$prevChar)
 
-RS$VA[which(RS$cond==1 | RS$cond==3)]<- 0.295
-RS$VA[which(RS$cond==2 | RS$cond==4)]<- 0.394
+
 
 ### fix NA character landing positions (outside text):
-
-# small font:
-a<- which(is.na(RS$LandStartLet) & is.element(RS$cond, c(1,3)))
-RS$LandStartLet[a]<- ceiling(RS$LandStartVA[a]/0.295)
-#RS$launchDistLet[a]<- ceiling(RS$launchDistVA[a]/0.295)
-
-# big font:
-b<- which(is.na(RS$LandStartLet) & is.element(RS$cond, c(2,4)))
-RS$LandStartLet[b]<- ceiling(RS$LandStartVA[b]/0.394)
-#RS$launchDistLet[b]<- ceiling(RS$launchDistVA[b]/0.394)
+a<- which(is.na(RSb$LandStartLet))
+RSb$LandStartLet[a]<- ceiling(RSb$LandStartVA[a]/0.295)
 
 # Fix launch site distance
-
-# small font:
-a<- which(is.na(RS$launchDistLet) & is.element(RS$cond, c(1,3)))
-RS$launchDistLet[a]<- ceiling(RS$launchDistVA[a]/0.295)
-
-# big font:
-b<- which(is.na(RS$launchDistLet) & is.element(RS$cond, c(2,4)))
-RS$launchDistLet[b]<- ceiling(RS$launchDistVA[b]/0.394)
-
+a<- which(is.na(RSb$launchDistLet))
+RSb$launchDistLet[a]<- ceiling(RSb$launchDistVA[a]/0.295)
 
 # prevChar NAs:
-a<- which(is.na(RS$prevChar) & is.element(RS$cond, c(1,3)))
-RS$prevChar[a]<- ceiling((RS$prevX[a]- 200)/12)
-
-b<- which(is.na(RS$prevChar) & is.element(RS$cond, c(2,4)))
-RS$prevChar[b]<- ceiling((RS$prevX[b]- 200)/16)
+a<- which(is.na(RSb$prevChar))
+RSb$prevChar[a]<- ceiling((RSb$prevX[a]- RSb$x_offset[a])/12)
 
 
+RSb$next_sacc<- abs(RSb$nextX - RSb$xPos)
+RSb$next_sacc_deg<- NA
+RSb$next_sacc_let<- NA
+RSb$next_land_pos<- NA
+RSb$next_land_let<- NA
+
+for(i in 1:nrow(RSb)){
+    RSb$next_sacc_deg[i]<- (RSb$next_sacc[i]/ 12)*0.295
+    RSb$next_sacc_let[i]<- ceiling(RSb$next_sacc[i]/ 12)
+    RSb$next_land_pos[i]<- ((RSb$nextX[i] -RSb$x_offset[i])/12)*0.295
+    RSb$next_land_let[i]<- ceiling((RSb$nextX[i] -RSb$x_offset[i])/12)
+}
+
+RSb$x_offset<- NULL
 
 ########
 
@@ -181,28 +239,28 @@ RS$prevChar[b]<- ceiling((RS$prevX[b]- 200)/16)
 #   RS$W3_end[i]<- RS$W3_start[i] + nchar(W3)-1
 # }
 
-save(RS, file= 'data/Font_size.Rda')
-write.csv(RS, 'data/Font_size.csv')
+save(RSb, file= 'data/Bold_OZ.Rda')
+write.csv(RSb, 'data/Bold_OZ.csv')
 
 
 
 ####################################################################################################
 
-rm(list= ls())
-
-sent <- read.delim("D:/R/RS_Model/data/prep/sent.txt")
-sent<- subset(sent, Var2==1)
-
-word_pos<- list()
-sent$Var5<- as.character(sent$Var5)
-sent$Var6<- as.character(sent$Var6)
-
-for(i in 1:nrow(sent)){
-  L2<- sent$Var6[i]
-  spaces<- unlist(gregexpr(' ', L2))
-  
-  word_pos[[toString(i)]]<- spaces
-}
-
-save(word_pos, file= 'data/L2_word_pos_FS.Rda')
-
+# rm(list= ls())
+# 
+# sent <- read.delim("D:/R/RS_Model/data/prep/sent.txt")
+# sent<- subset(sent, Var2==1)
+# 
+# word_pos<- list()
+# sent$Var5<- as.character(sent$Var5)
+# sent$Var6<- as.character(sent$Var6)
+# 
+# for(i in 1:nrow(sent)){
+#   L2<- sent$Var6[i]
+#   spaces<- unlist(gregexpr(' ', L2))
+#   
+#   word_pos[[toString(i)]]<- spaces
+# }
+# 
+# save(word_pos, file= 'data/L2_word_pos_FS.Rda')
+# 
