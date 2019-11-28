@@ -203,6 +203,10 @@ for(i in 1:nrow(RSb)){
     RSb$next_land_let[i]<- ceiling((RSb$nextX[i] -RSb$x_offset[i])/12)
 }
 
+
+RSb$prevVA<- (RSb$prevX- RSb$x_offset)*DPP
+
+
 RSb$x_offset<- NULL
 
 ########
