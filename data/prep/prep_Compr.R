@@ -134,7 +134,7 @@ for(i in 1:nrow(RSc)){
     RSc$next_sacc_deg[i]<- (RSc$next_sacc[i]/ 10)*0.3125
     RSc$next_sacc_let[i]<- ceiling(RSc$next_sacc[i]/ 10)
     RSc$next_land_pos[i]<- ((RSc$nextX[i] -RSc$x_offset[i])/10)*0.3125
-    RSc$next_land_let[i]<- ceiling((RSc$nextX[i] -RSc$x_offset[i])/10
+    RSc$next_land_let[i]<- ceiling((RSc$nextX[i] -RSc$x_offset[i])/10)
 }
 
 
