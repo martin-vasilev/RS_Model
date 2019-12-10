@@ -134,4 +134,52 @@ rm(list= ls())
                            , SD= round(sd(x),3) ))
  
  write.csv(mComp, 'Summary/Comprehension_descr.csv')
+
+ 
+ ######################################################
+ rm(list= ls()) 
+ 
+ # Abbreviation data data
+ load("data/Abbrev_data.Rda")
+ RS<- RSa; rm(RSa)
+ RS<- subset(RS, !is.na(RS$prevChar))
+ RS<- subset(RS, prevVA>0)
+ load("data/L2_word_pos_FS.Rda")
+ 
+ 
+ source('functions/Return_sweeper1.R')
+ 
+
+ AbbrevSim0<- Return_sweeper1(RS, word_pos, RS_target = 0)
+ AbbrevSim1.5<- Return_sweeper1(RS, word_pos, RS_target = 1.5)
+ #AbbrevSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
+ 
+ 
+ Empir<- RS
+ Empir$M_launchDistVA<- Empir$launchDistVA      
+ Empir$M_landStartVA<- Empir$LandStartVA       
+ Empir$M_landStartLet<- Empir$LandStartLet        
+ Empir$M_UND<- Empir$undersweep_prob              
+ Empir$M_next_LP<- Empir$next_land_pos            
+ Empir$M_next_sacc_len<- Empir$next_sacc_deg
+ 
+ Empir$M_next_LP[which(Empir$M_UND==0)]<- NA
+ mean(Empir$M_next_LP, na.rm=T)
+ 
+ AbbrevSim0$Model<- "Left margin"
+ AbbrevSim1.5$Model<- "1.5 char."
+ #AbbrevSimOVP$Model<- 'W1 OVP'
+ Empir$Model<- 'Empirical'
+ 
+ Abbrev<- rbind(AbbrevSim0, AbbrevSim1.5, Empir)# , AbbrevSimOVP
+ 
+ DesAbbrev<- melt(Abbrev, id=c('sub', 'item', 'cond', 'LandStartLet', 'Model'), 
+                measure=c("M_landStartVA", 'M_UND', 'M_launchDistVA', 'M_next_LP'), na.rm=TRUE)
+ mAbbrev<- cast(DesAbbrev, Model ~ variable
+              ,function(x) c(M=signif(mean(x),3)
+                             , SD= round(sd(x),3) ))
+ 
+ write.csv(mAbbrev, 'Summary/Abbreviation_descr.csv')
+ 
+  
  

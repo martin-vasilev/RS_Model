@@ -52,6 +52,7 @@ raw_fix<- new; rm(new)
 RSa<-subset(raw_fix, Rtn_sweep==1)
 RSa$Condition<- ifelse(is.element(RSa$cond, c(1,3)), "Silent", "Aloud") # add condition type
 RSa$VA<- 0.31998 # visual angle in experiment (equivalent to "small font" in the font size paper)
+RSa$x_offset<- x_offset
 
 RSa<- subset(RSa, Condition=='Silent')
 
@@ -84,57 +85,57 @@ RSa$undersweep_prob<- ifelse(RSa$Rtn_sweep_type== "undersweep", 1,0)
 
 
 # add landing position relative to line start (in letters):
-RSb$LandStartLet<- RSb$char_line
+RSa$LandStartLet<- RSa$char_line
 
 # landing position relative to line start (in degrees per visual angle)
 
 DPP<- 0.02461393513610085 # degree per pixel in the experiment
 
-RSb$LandStartVA<- (RSb$xPos - RSb$x_offset)*DPP
+RSa$LandStartVA<- (RSa$xPos - RSa$x_offset)*DPP
 
 # code (absolute) launch site distance in letters:
-RSb$launchDistLet<- abs(RSb$char_line- RSb$prevChar)
+RSa$launchDistLet<- abs(RSa$char_line- RSa$prevChar)
 
 # code (absolute) launch site distance in visual angle:
-RSb$launchDistVA<- abs(RSb$xPos- RSb$prevX)*DPP
+RSa$launchDistVA<- abs(RSa$xPos- RSa$prevX)*DPP
 
 
 # recode saccade length:
-RSb$sacc_len<- abs(RSb$char_line- RSb$prevChar)
+RSa$sacc_len<- abs(RSa$char_line- RSa$prevChar)
 
 
 
 ### fix NA character landing positions (outside text):
-a<- which(is.na(RSb$LandStartLet))
-RSb$LandStartLet[a]<- ceiling(RSb$LandStartVA[a]/0.295)
+a<- which(is.na(RSa$LandStartLet))
+RSa$LandStartLet[a]<- ceiling(RSa$LandStartVA[a]/0.31998)
 
 # Fix launch site distance
-a<- which(is.na(RSb$launchDistLet))
-RSb$launchDistLet[a]<- ceiling(RSb$launchDistVA[a]/0.295)
+a<- which(is.na(RSa$launchDistLet))
+RSa$launchDistLet[a]<- ceiling(RSa$launchDistVA[a]/0.31998)
 
 # prevChar NAs:
-a<- which(is.na(RSb$prevChar))
-RSb$prevChar[a]<- ceiling((RSb$prevX[a]- RSb$x_offset[a])/12)
+a<- which(is.na(RSa$prevChar))
+RSa$prevChar[a]<- ceiling((RSa$prevX[a]- RSa$x_offset[a])/13)
 
 
-RSb$next_sacc<- abs(RSb$nextX - RSb$xPos)
-RSb$next_sacc_deg<- NA
-RSb$next_sacc_let<- NA
-RSb$next_land_pos<- NA
-RSb$next_land_let<- NA
+RSa$next_sacc<- abs(RSa$nextX - RSa$xPos)
+RSa$next_sacc_deg<- NA
+RSa$next_sacc_let<- NA
+RSa$next_land_pos<- NA
+RSa$next_land_let<- NA
 
-for(i in 1:nrow(RSb)){
-    RSb$next_sacc_deg[i]<- (RSb$next_sacc[i]/ 12)*0.295
-    RSb$next_sacc_let[i]<- ceiling(RSb$next_sacc[i]/ 12)
-    RSb$next_land_pos[i]<- ((RSb$nextX[i] -RSb$x_offset[i])/12)*0.295
-    RSb$next_land_let[i]<- ceiling((RSb$nextX[i] -RSb$x_offset[i])/12)
+for(i in 1:nrow(RSa)){
+    RSa$next_sacc_deg[i]<- (RSa$next_sacc[i]/ 13)*0.31998
+    RSa$next_sacc_let[i]<- ceiling(RSa$next_sacc[i]/ 13)
+    RSa$next_land_pos[i]<- ((RSa$nextX[i] -RSa$x_offset[i])/13)*0.31998
+    RSa$next_land_let[i]<- ceiling((RSa$nextX[i] -RSa$x_offset[i])/13)
 }
 
 
-RSb$prevVA<- (RSb$prevX- RSb$x_offset)*DPP
+RSa$prevVA<- (RSa$prevX- RSa$x_offset)*DPP
 
 
-RSb$x_offset<- NULL
+RSa$x_offset<- NULL
 
 ########
 
@@ -170,8 +171,8 @@ RSb$x_offset<- NULL
 #   RS$W3_end[i]<- RS$W3_start[i] + nchar(W3)-1
 # }
 
-save(RSb, file= 'data/Bold_OZ.Rda')
-write.csv(RSb, 'data/Bold_OZ.csv')
+save(RSa, file= 'data/Abbrev_data.Rda')
+write.csv(RSa, 'data/Abbrev_data.csv')
 
 
 
