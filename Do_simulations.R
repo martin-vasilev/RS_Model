@@ -60,7 +60,7 @@ rm(list= ls())
  
  OZSim0<- Return_sweeper1(RS, word_pos, RS_target = 0)
  OZSim1.5<- Return_sweeper1(RS, word_pos, RS_target = 1.5)
- #OZSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
+ OZSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
  
  
  Empir<- RS
@@ -76,10 +76,10 @@ rm(list= ls())
  
  OZSim0$Model<- "Left margin"
  OZSim1.5$Model<- "1.5 char."
- #OZSimOVP$Model<- 'W1 OVP'
+ OZSimOVP$Model<- 'W1 OVP'
  Empir$Model<- 'Empirical'
  
- OZ<- rbind(OZSim0, OZSim1.5, Empir)# , OZSimOVP
+ OZ<- rbind(OZSim0, OZSim1.5, OZSimOVP, Empir)
  
  DesOZ<- melt(OZ, id=c('sub', 'item', 'cond', 'LandStartLet', 'Model'), 
               measure=c("M_landStartVA", 'M_UND', 'M_launchDistVA', 'M_next_LP'), na.rm=TRUE)
@@ -144,15 +144,14 @@ rm(list= ls())
  RS<- RSa; rm(RSa)
  RS<- subset(RS, !is.na(RS$prevChar))
  RS<- subset(RS, prevVA>0)
- #load("data/word_pos_Comprehension.Rda")
- 
+ load("data/word_pos_Abbrev.Rda")
  
  source('functions/Return_sweeper1.R')
  
 
  AbbrevSim0<- Return_sweeper1(RS, word_pos, RS_target = 0)
  AbbrevSim1.5<- Return_sweeper1(RS, word_pos, RS_target = 1.5)
- #AbbrevSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
+ AbbrevSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP", diff_cond = TRUE)
  
  
  Empir<- RS
@@ -168,10 +167,10 @@ rm(list= ls())
  
  AbbrevSim0$Model<- "Left margin"
  AbbrevSim1.5$Model<- "1.5 char."
- #AbbrevSimOVP$Model<- 'W1 OVP'
+ AbbrevSimOVP$Model<- 'W1 OVP'
  Empir$Model<- 'Empirical'
  
- Abbrev<- rbind(AbbrevSim0, AbbrevSim1.5, Empir)# , AbbrevSimOVP
+ Abbrev<- rbind(AbbrevSim0, AbbrevSim1.5, AbbrevSimOVP, Empir)
  
  DesAbbrev<- melt(Abbrev, id=c('sub', 'item', 'cond', 'LandStartLet', 'Model'), 
                 measure=c("M_landStartVA", 'M_UND', 'M_launchDistVA', 'M_next_LP'), na.rm=TRUE)

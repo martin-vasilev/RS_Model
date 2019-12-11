@@ -10,10 +10,11 @@
 #' @param R_X Slope of random error SD
 #' @param pCorr_mu Mean of CDF for prob. of making a corrective saccade (in letters)
 #' @param pCorr_sigma SD of CDF for prob. of making a corrective saccade  (in letters)
+#' @param diff_cond a logical indicating whether the text differed between conditions
 
 
 Return_sweeper1<- function(data, word_pos, RS_target= 0, S_X0= 0.07712, S_X= -0.07710, R_X0= 0.11840, R_X= 0.08248,
-                           pCorr_mu= 2, pCorr_sigma= 7){
+                           pCorr_mu= 2, pCorr_sigma= 7, diff_cond= FALSE){
 
   # Set-up variables for saving results from the model:
   data$M_launchDistVA<- NA        # return-sweep saccade length in deg
@@ -35,10 +36,16 @@ Return_sweeper1<- function(data, word_pos, RS_target= 0, S_X0= 0.07712, S_X= -0.
       dist<- data$prevVA[i] - RS_target*data$VA[i]   
     }else{
       if(RS_target== "OVP"){
-        loc<- which(word_pos$item== data$item[i] & word_pos$line== data$line[i] & word_pos$word== 1)
+        
+        if(diff_cond){ # text differs between conditions; subset by cond too
+          loc<- which(word_pos$item== data$item[i] &  word_pos$cond== data$cond[i] & word_pos$line== data$line[i] & word_pos$word== 1)
+        }else{
+          loc<- which(word_pos$item== data$item[i] & word_pos$line== data$line[i] & word_pos$word== 1)
+        }
+        
         W1_OVP<- word_pos$OVP[loc]
-        RS_target<- W1_OVP # RS_target changes on each iteration!
-        dist<- data$prevVA[i] - RS_target*data$VA[i]
+        curr_target<- W1_OVP # this is the equiv. to RS_target for this iteration!
+        dist<- data$prevVA[i] - curr_target*data$VA[i]
       }else{
         stop('Unknown input to "RS_target"!')
       }
@@ -52,7 +59,13 @@ Return_sweeper1<- function(data, word_pos, RS_target= 0, S_X0= 0.07712, S_X= -0.
     data$M_landStartLet[i]<- ceiling(data$M_landStartVA[i]/data$VA[i])
     
     # Probability of making a corrective saccade
-    probCorrSacc<- pnorm(q = data$M_landStartLet[i]- RS_target, mean =  pCorr_mu, sd = pCorr_sigma)
+    if(RS_target== "OVP"){
+      probCorrSacc<- pnorm(q = data$M_landStartLet[i]- curr_target, mean =  pCorr_mu, sd = pCorr_sigma)
+    }else{
+      probCorrSacc<- pnorm(q = data$M_landStartLet[i]- RS_target, mean =  pCorr_mu, sd = pCorr_sigma)
+      
+    }
+    
     RandDraw<- runif(1)
     
     if(RandDraw<= probCorrSacc){
@@ -65,7 +78,12 @@ Return_sweeper1<- function(data, word_pos, RS_target= 0, S_X0= 0.07712, S_X= -0.
     if(data$M_UND[i]== 1){
       
       #next landing position (in deg):
-      next_sacc_dist<- data$M_landStartVA[i]- RS_target*data$VA[i] 
+      if(RS_target== "OVP"){
+        next_sacc_dist<- data$M_landStartVA[i]- curr_target*data$VA[i]
+      }else{
+        next_sacc_dist<- data$M_landStartVA[i]- RS_target*data$VA[i]
+      }
+       
       sys_error_next<- S_X0+ next_sacc_dist*S_X  # systematic return sweep error
       rand_error_next<- rnorm(n = 1, mean = 0, sd = R_X0+ R_X*next_sacc_dist)
       

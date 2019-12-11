@@ -221,5 +221,7 @@ for(i in 1:nrow(sent)){
   
 }
 
+word_pos$cond[which(word_pos$cond==2)]<- 3 # 3 was LF in silent reading
+
 save(word_pos, file= 'data/word_pos_Abbrev.Rda')
 write.csv(word_pos, file= 'data/word_pos_Abbrev.csv') 
