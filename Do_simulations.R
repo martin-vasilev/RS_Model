@@ -99,14 +99,14 @@ rm(list= ls())
  RS<- RSc; rm(RSc)
  RS<- subset(RS, !is.na(RS$prevChar))
  RS<- subset(RS, prevVA>0)
- load("data/L2_word_pos_FS.Rda")
+ load("data/word_pos_Comprehension.Rda")
  
  
  source('functions/Return_sweeper1.R')
  
  CompSim0<- Return_sweeper1(RS, word_pos, RS_target = 0)
  CompSim1.5<- Return_sweeper1(RS, word_pos, RS_target = 1.5)
- #CompSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
+ CompSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
  
  
  Empir<- RS
@@ -122,10 +122,10 @@ rm(list= ls())
  
  CompSim0$Model<- "Left margin"
  CompSim1.5$Model<- "1.5 char."
- #CompSimOVP$Model<- 'W1 OVP'
+ CompSimOVP$Model<- 'W1 OVP'
  Empir$Model<- 'Empirical'
  
- Comp<- rbind(CompSim0, CompSim1.5, Empir)# , CompSimOVP
+ Comp<- rbind(CompSim0, CompSim1.5, CompSimOVP,  Empir)
  
  DesComp<- melt(Comp, id=c('sub', 'item', 'cond', 'LandStartLet', 'Model'), 
               measure=c("M_landStartVA", 'M_UND', 'M_launchDistVA', 'M_next_LP'), na.rm=TRUE)
@@ -144,7 +144,7 @@ rm(list= ls())
  RS<- RSa; rm(RSa)
  RS<- subset(RS, !is.na(RS$prevChar))
  RS<- subset(RS, prevVA>0)
- load("data/L2_word_pos_FS.Rda")
+ #load("data/word_pos_Comprehension.Rda")
  
  
  source('functions/Return_sweeper1.R')

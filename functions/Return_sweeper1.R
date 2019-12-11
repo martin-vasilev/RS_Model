@@ -35,10 +35,10 @@ Return_sweeper1<- function(data, word_pos, RS_target= 0, S_X0= 0.07712, S_X= -0.
       dist<- data$prevVA[i] - RS_target*data$VA[i]   
     }else{
       if(RS_target== "OVP"){
-        W1_len<- word_pos[[toString(data$item[i])]][1]-1 # -1 because of empty space after word
-        W1_OVP<- W1_len/2
+        loc<- which(word_pos$item== data$item[i] & word_pos$line== data$line[i] & word_pos$word== 1)
+        W1_OVP<- word_pos$OVP[loc]
         RS_target<- W1_OVP # RS_target changes on each iteration!
-        dist<- data$prevVA[i] - RS_target*data$VA[i]  
+        dist<- data$prevVA[i] - RS_target*data$VA[i]
       }else{
         stop('Unknown input to "RS_target"!')
       }
