@@ -5,7 +5,7 @@
 
 rm(list= ls())
 load("data/Font_size.Rda")
-load("data/L2_word_pos_FS.Rda")
+load("data/word_pos_FS.Rda")
 RS<- subset(RS, !is.na(RS$prevChar))
 RS<- subset(RS, prevVA>0)
 
@@ -54,7 +54,7 @@ rm(list= ls())
  RS<- subset(RS, Condition=="Normal")
  RS<- subset(RS, !is.na(RS$prevChar))
  RS<- subset(RS, prevVA>0)
- load("data/L2_word_pos_FS.Rda")
+ load("data/word_pos_OZ.Rda")
  
  source('functions/Return_sweeper1.R')
  

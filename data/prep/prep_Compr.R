@@ -223,3 +223,4 @@ for(i in 1:length(sent)){
 
 
 save(word_pos, file= 'data/word_pos_Comprehension.Rda')
+write.csv(word_pos, file= 'data/word_pos_Comprehension.csv')

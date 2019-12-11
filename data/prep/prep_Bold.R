@@ -249,22 +249,55 @@ write.csv(RSb, 'data/Bold_OZ.csv')
 
 
 ####################################################################################################
+library(stringr)
 
-# rm(list= ls())
-# 
-# sent <- read.delim("D:/R/RS_Model/data/prep/sent.txt")
-# sent<- subset(sent, Var2==1)
-# 
-# word_pos<- list()
-# sent$Var5<- as.character(sent$Var5)
-# sent$Var6<- as.character(sent$Var6)
-# 
-# for(i in 1:nrow(sent)){
-#   L2<- sent$Var6[i]
-#   spaces<- unlist(gregexpr(' ', L2))
-#   
-#   word_pos[[toString(i)]]<- spaces
-# }
-# 
-# save(word_pos, file= 'data/L2_word_pos_FS.Rda')
-# 
+rm(list= ls())
+
+d_num<- c(2,3,5,7,9,10,11,13,15,16,17,18,20,21,22,23,25)
+d<- paste('https://raw.githubusercontent.com/martin-vasilev/Oz/master/Experiment/DorothyText/Dorothy', 
+          d_num, '.txt', sep='') 
+
+t_num<- c(2,4,5,6,8,10,11,12,13,15,16,17,18,20,22,23,24,26)
+t<- paste('https://raw.githubusercontent.com/martin-vasilev/Oz/master/Experiment/TiktokText/Tiktok', 
+          t_num, '.txt', sep='') 
+
+files<- c(d, t)
+items<- c(d_num, t_num+25)
+
+word_pos<- NULL
+
+for(i in 1:length(files)){
+  lines<- readLines(files[i])
+  
+  for(j in 1:length(lines)){
+    text= lines[j]
+    text= str_remove(text, '#####')
+    
+    words<- unlist(strsplit(text, " "))
+    
+    start_char= 1
+    
+    for(k in 1:length(words)){
+      t<- data.frame(item=items[i], line= j, word= k, start= NA, end= NA, length= NA, OVP= NA, string= NA)
+      
+      t$length<- nchar(words[k])
+      t$string<- words[k]
+      t$start<- start_char
+      t$end<- start_char + nchar(words[k])-1 
+      range<- t$start:t$end
+      t$OVP<- range[ceiling(length(range)/2)]
+      
+      start_char<- start_char + nchar(words[k])+1
+      
+      word_pos<- rbind(word_pos, t)
+    }
+    
+    
+  }
+  
+  
+}
+
+
+save(word_pos, file= 'data/word_pos_OZ.Rda')
+write.csv(word_pos, 'data/word_pos_OZ.csv')
