@@ -178,21 +178,48 @@ write.csv(RSa, 'data/Abbrev_data.csv')
 
 ####################################################################################################
 
-# rm(list= ls())
-# 
-# sent <- read.delim("D:/R/RS_Model/data/prep/sent.txt")
-# sent<- subset(sent, Var2==1)
-# 
-# word_pos<- list()
-# sent$Var5<- as.character(sent$Var5)
-# sent$Var6<- as.character(sent$Var6)
-# 
-# for(i in 1:nrow(sent)){
-#   L2<- sent$Var6[i]
-#   spaces<- unlist(gregexpr(' ', L2))
-#   
-#   word_pos[[toString(i)]]<- spaces
-# }
-# 
-# save(word_pos, file= 'data/L2_word_pos_FS.Rda')
-# 
+rm(list= ls())
+
+sent <- read.csv("data/prep/sent_Abbrev.txt")
+sent$stimuli<- as.character(sent$stimuli)
+sent$cond<- as.numeric(as.character(sent$cond))
+sent$item<- as.numeric(as.character(sent$item))
+
+sent<- subset(sent, item< 41)
+
+word_pos<- NULL
+
+for(i in 1:nrow(sent)){
+  string<- sent$stimuli[i]
+  lines<- unlist(strsplit(string, '@'))
+  
+  for(j in 1:length(lines)){
+    text= lines[j]
+    words<- unlist(strsplit(text, " "))
+    
+    start_char= 1
+    
+    for(k in 1:length(words)){
+      t<- data.frame(item= sent$item[i], cond= sent$cond[i], line= j, word= k, start= NA, end= NA,
+                     length= NA, OVP= NA, string= NA)
+      
+      t$length<- nchar(words[k])
+      t$string<- words[k]
+      t$start<- start_char
+      t$end<- start_char + nchar(words[k])-1 
+      range<- t$start:t$end
+      t$OVP<- range[ceiling(length(range)/2)]
+      
+      start_char<- start_char + nchar(words[k])+1
+      
+      word_pos<- rbind(word_pos, t)
+    }
+    
+    
+  }
+  
+  
+}
+
+save(word_pos, file= 'data/word_pos_Abbrev.Rda')
+write.csv(word_pos, file= 'data/word_pos_Abbrev.csv') 
