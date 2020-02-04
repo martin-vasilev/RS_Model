@@ -1,4 +1,5 @@
 
+
 #####################
 #  Font size study: #
 #####################
@@ -11,9 +12,9 @@ RS<- subset(RS, prevVA>0)
 
 source('functions/Return_sweeper1.R')
 
-FontSim0<- Return_sweeper1(RS, word_pos, RS_target = 0)
-FontSim1.5<- Return_sweeper1(RS, word_pos, RS_target = 1.5)
-FontSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP")
+FontSim0<- Return_sweeper1(RS, word_pos, RS_target = 0, nsim= 10)
+FontSim1.5<- Return_sweeper1(RS, word_pos, RS_target = 1.5, nsim= 10)
+FontSimOVP<- Return_sweeper1(RS, word_pos, RS_target = "OVP", nsim= 10)
 
 Empir<- RS
 Empir$M_launchDistVA<- Empir$launchDistVA      
@@ -43,6 +44,11 @@ mFS<- cast(DesFS, Model ~ variable
                             , SD= round(sd(x),3) ))
 
 write.csv(mFS, 'Summary/Font_size_descr.csv')
+
+FS$Dataset= "Font size"
+save(FS, file= 'results/raw/FS.Rda')
+write.csv(FS, 'results/raw/FS.csv')
+
 
 #################################################################################################################
 
@@ -89,7 +95,9 @@ rm(list= ls())
  
  write.csv(mOZ, 'Summary/OZ_descr.csv')
  
- 
+ OZ$Dataset= "OZ (Normal)"
+ save(OZ, file= 'results/raw/OZ.Rda')
+ write.csv(OZ, 'results/raw/OZ.csv') 
 
 ##########################################################################################################
 rm(list= ls()) 
@@ -136,6 +144,10 @@ rm(list= ls())
  write.csv(mComp, 'Summary/Comprehension_descr.csv')
 
  
+ Comp$Dataset= "Comprehension items"
+ save(Comp, file= 'results/raw/Comp.Rda')
+ write.csv(Comp, 'results/raw/Comp.csv')
+ 
  ######################################################
  rm(list= ls()) 
  
@@ -180,5 +192,63 @@ rm(list= ls())
  
  write.csv(mAbbrev, 'Summary/Abbreviation_descr.csv')
  
-  
+ Abbrev$Dataset= "Abbreviations (Silent)"
+ save(Abbrev, file= 'results/raw/Abbrev.Rda')
+ write.csv(Abbrev, 'results/raw/Abbrev.csv')
  
+ 
+ # merge all results in a single data frame:
+ 
+ rm(list= ls())
+
+ load("results/raw/FS.Rda")
+ load("results/raw/OZ.Rda")
+ load("results/raw/Comp.Rda")
+ load("results/raw/Abbrev.Rda")
+
+ All<- rbind(FS, OZ, Comp, Abbrev) 
+ 
+ 
+ # #####################
+ # #       Provo:      #
+ # #####################
+ # 
+ # rm(list= ls())
+ # load("data/provo.Rda")
+ # load("data/word_pos_FS.Rda")
+ # #provo<- subset(provo, !is.na(provo$prevChar))
+ # provo<- subset(provo, prevVA>0)
+ # provo<- subset(provo, LandStartVA<15)
+ # 
+ # source('functions/Return_sweeper1.R')
+ # 
+ # ProvoSim0<- Return_sweeper1(provo, word_pos, RS_target = 0)
+ # ProvoSim1.5<- Return_sweeper1(provo, word_pos, RS_target = 2.5)
+ # ProvoSimOVP<- Return_sweeper1(provo, word_pos, RS_target = "OVP")
+ # 
+ # Empir<- provo
+ # Empir$M_launchDistVA<- Empir$launchDistVA      
+ # Empir$M_landStartVA<- Empir$LandStartVA       
+ # Empir$M_landStartLet<- Empir$LandStartLet        
+ # Empir$M_UND<- Empir$undersweep_prob              
+ # Empir$M_next_LP<- Empir$next_land_pos            
+ # Empir$M_next_sacc_len<- Empir$next_sacc_deg
+ # 
+ # Empir$M_next_LP[which(Empir$M_UND==0)]<- NA
+ # mean(Empir$M_next_LP, na.rm=T)
+ # 
+ # ProvoSim0$Model<- "Left margin"
+ # ProvoSim1.5$Model<- "1.5 char."
+ # ProvoSimOVP$Model<- 'W1 OVP'
+ # Empir$Model<- 'Empirical'
+ # 
+ # PR<- rbind(ProvoSim0, ProvoSim1.5)
+ # 
+ # # get means:
+ # library(reshape)
+ # 
+ # DesPR<- melt(PR, id=c('sub', 'item', 'Model'), 
+ #              measure=c("M_landStartVA", 'M_UND', 'M_launchDistVA', 'M_next_LP'), na.rm=TRUE)
+ # mPR<- cast(DesPR, Model ~ variable
+ #            ,function(x) c(M=signif(mean(x),3)
+ #                           , SD= round(sd(x),3) ))
